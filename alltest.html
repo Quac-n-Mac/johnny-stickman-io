@@ -56,7 +56,7 @@
         while (tasks.length && !wrong) {
           var t = tasks.shift();
           if (!t) break;
-          var buf = await (await fetch('full-life/' + t.file)).arrayBuffer();
+          var buf = await (await fetch('alltest/' + t.file)).arrayBuffer();
           var iv = new Uint8Array(buf, 0, 12);
           var plain;
           try { plain = await crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, buf.slice(12)); }
