@@ -1,0 +1,13 @@
+{
+  "v": 1,
+  "kdf": "PBKDF2-SHA256",
+  "iterations": 600000,
+  "salt": "iBSU/USE6YVKvqxaby5S2A==",
+  "chunks": [
+    "data.00.bin",
+    "data.01.bin",
+    "data.02.bin"
+  ],
+  "size": 202820413,
+  "sha256": "cb1ccd76407300a821f57b4d6fb5d41a0d801c5435c632e0ccae4952f92ebf4b"
+}
