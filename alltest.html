@@ -56,7 +56,19 @@
         while (tasks.length && !wrong) {
           var t = tasks.shift();
           if (!t) break;
-          var buf = await (await fetch('alltest/' + t.file)).arrayBuffer();
+          var buf = null, lastErr = null;
+          for (var att = 1; att <= 10 && !buf; att++) {
+            try {
+              var r = await fetch('alltest/' + t.file);
+              if (!r.ok) throw new Error('http ' + r.status);
+              buf = await r.arrayBuffer();
+            } catch(fe) {
+              lastErr = fe; buf = null;
+              pct.textContent = 'retry ' + att + '/10 ' + t.file;
+              await new Promise(function(res){ setTimeout(res, 1500*att + Math.random()*1500); });
+            }
+          }
+          if (!buf) throw lastErr;
           var iv = new Uint8Array(buf, 0, 12);
           var plain;
           try { plain = await crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, buf.slice(12)); }
