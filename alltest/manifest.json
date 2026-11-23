@@ -1,0 +1,17 @@
+{
+  "v": 1,
+  "kdf": "PBKDF2-SHA256",
+  "iterations": 600000,
+  "salt": "YBqyCl0NLeEl2X5YDThFeQ==",
+  "chunks": [
+    "data.00.bin",
+    "data.01.bin",
+    "data.02.bin",
+    "data.03.bin",
+    "data.04.bin",
+    "data.05.bin",
+    "data.06.bin"
+  ],
+  "size": 605633590,
+  "sha256": "32d749ae5eba0c5ea75d0a66481a14836311856ab7965dcd77d24fbc04aa7003"
+}

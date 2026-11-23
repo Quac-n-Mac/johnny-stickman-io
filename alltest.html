@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Johnny Stickman (all2 test)</title>
+<style>
+  html,body{margin:0;height:100%;background:#111;color:#eee;font-family:system-ui,sans-serif}
+  #gate{max-width:420px;margin:12vh auto;padding:24px;background:#1c1c1c;border-radius:12px}
+  h1{font-size:1.4rem;margin:0 0 4px}
+  .sub{color:#999;font-size:.85rem;margin-bottom:18px}
+  button{display:block;width:100%;padding:12px;margin:8px 0;background:#2d5f2f;border:0;border-radius:8px;color:#fff;font-size:1rem;cursor:pointer}
+  input[type=password]{width:100%;box-sizing:border-box;padding:12px;margin:8px 0;background:#111;border:1px solid #444;border-radius:8px;color:#fff;font-size:1rem}
+  #bar{height:8px;background:#333;border-radius:4px;overflow:hidden;margin-top:12px;display:none}
+  #fill{height:100%;width:0;background:#4caf50;transition:width .2s}
+  #msg{color:#f88;font-size:.85rem;min-height:1.2em;margin-top:8px}
+  #pct{color:#9c9;font-size:.8rem}
+  iframe{border:0;position:fixed;inset:0;width:100vw;height:100vh;display:none;background:#000}
+</style>
+</head>
+<body>
+<div id="gate">
+  <h1>Johnny Stickman (progressive all-in-one test)</h1>
+  <div class="sub">Parallel-fetch + blob-boot test of the 606MB progressive-boot build.</div>
+  <input type="password" id="pw" placeholder="Password" autocomplete="off">
+  <button id="go">Unlock &amp; play</button>
+  <div id="bar"><div id="fill"></div></div>
+  <div id="pct"></div>
+  <div id="msg"></div>
+</div>
+<iframe id="frame" allow="autoplay; fullscreen; keyboard; pointer-lock; gamepad"></iframe>
+<pre id="err" style="display:none;position:fixed;top:0;left:0;color:#f66;background:#000a;z-index:99;font-size:12px;white-space:pre-wrap"></pre>
+<script>
+(function(){
+  var pw = document.getElementById('pw');
+  var msg = document.getElementById('msg');
+  var bar = document.getElementById('bar');
+  var fill = document.getElementById('fill');
+  var pct = document.getElementById('pct');
+  function b64(s){ var bin = atob(s); var u8 = new Uint8Array(bin.length); for (var i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i); return u8; }
+  async function go(){
+    var pass = pw.value;
+    if (!pass) { msg.textContent = 'Enter the password.'; return; }
+    document.getElementById('go').disabled = true;
+    msg.textContent = '';
+    bar.style.display = 'block';
+    try {
+      pct.textContent = 'deriving key...';
+      var m = await (await fetch('alltest/manifest.json')).json();
+      var km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+      var key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64(m.salt), iterations:m.iterations, hash:'SHA-256'}, km, {name:'AES-GCM', length:256}, false, ['decrypt']);
+      var tasks = m.chunks.map(function(c, i){ return {i:i, file:c}; });
+      var slots = new Array(m.chunks.length);
+      var doneBytes = 0, wrong = false;
+      async function worker(){
+        while (tasks.length && !wrong) {
+          var t = tasks.shift();
+          if (!t) break;
+          var buf = await (await fetch('full-life/' + t.file)).arrayBuffer();
+          var iv = new Uint8Array(buf, 0, 12);
+          var plain;
+          try { plain = await crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, buf.slice(12)); }
+          catch(e) { wrong = true; throw new Error('wrong-password'); }
+          slots[t.i] = plain;
+          doneBytes += plain.byteLength;
+          var pc = Math.round(doneBytes/m.size*100);
+          fill.style.width = pc + '%';
+          pct.textContent = 'loading ' + pc + '%';
+        }
+      }
+      await Promise.all([worker(),worker(),worker(),worker(),worker(),worker()]);
+      pct.textContent = 'assembling...';
+      var blob = new Blob(slots, {type:'text/html'});
+      slots = null;
+      var url = URL.createObjectURL(blob);
+      pct.textContent = 'booting html (this can take minutes)...';
+      var f = document.getElementById('frame');
+      f.style.display = 'block';
+      f.src = url;
+      document.getElementById('gate').style.display = 'none';
+      window.__legacyBootStarted = Date.now();
+    } catch(e) {
+      document.getElementById('go').disabled = false;
+      if (e && e.message === 'wrong-password') { msg.textContent = 'Wrong password.'; return; }
+      msg.textContent = 'Load failed.';
+      var pre = document.getElementById('err');
+      pre.style.display = 'block';
+      pre.textContent = 'ALL2 FAIL: ' + String(e && e.stack || e);
+    }
+  }
+  document.getElementById('go').onclick = go;
+  pw.onkeydown = function(e){ if (e.key === 'Enter') go(); };
+  pw.focus();
+})();
+</script>
+</body>
+</html>
