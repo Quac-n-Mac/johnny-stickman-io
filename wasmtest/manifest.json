@@ -1,0 +1,24 @@
+{
+  "v": 1,
+  "kdf": "PBKDF2-SHA256",
+  "iterations": 600000,
+  "salt": "9Q+fEUGVrX0a7YGxRp52WQ==",
+  "size": 39850873,
+  "sha256": "a2aafa396727a7867abee46d8e7595cb6543ad27c457f6e5dea74f3c5371d9a0",
+  "chunks": [
+    "d3.000.bin",
+    "d3.001.bin",
+    "d3.002.bin",
+    "d3.003.bin",
+    "d3.004.bin",
+    "d3.005.bin",
+    "d3.006.bin",
+    "d3.007.bin",
+    "d3.008.bin",
+    "d3.009.bin",
+    "d3.010.bin",
+    "d3.011.bin",
+    "d3.012.bin",
+    "d3.013.bin"
+  ]
+}
